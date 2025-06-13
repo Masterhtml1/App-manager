@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 90%;
+            max-width: 800px;
+            min-height: 500px;
+        }
+
+        .login-screen {
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .login-screen h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .apps-screen {
+            padding: 30px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .apps-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .apps-header h1 {
+            color: #333;
+            font-size: 2.5em;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #f0f0f0;
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            background: #667eea;
+            border-radius: 15px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .app-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+
+        .app-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .add-apps-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .add-apps-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            margin: 50px auto;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .error {
+            color: #ff6b6b;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .success {
+            color: #4ecdc4;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .file-input-label:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .preview-image {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-screen">
+            <h1>🔐 App Manager</h1>
+            <div class="input-group">
+                <input type="password" id="loginPassword" placeholder="Enter Password" />
+            </div>
+            <button class="btn" onclick="login()">Enter</button>
+            <div id="loginError" class="error"></div>
+        </div>
+
+        <!-- Apps Screen -->
+        <div id="appsScreen" class="apps-screen hidden">
+            <div class="apps-header">
+                <h1>📱 Apps</h1>
+                <button class="btn" onclick="logout()">Logout</button>
+            </div>
+            <div id="appsGrid" class="apps-grid">
+                <!-- Apps will be populated here -->
+            </div>
+            <button class="add-apps-btn" onclick="showAdminModal()">+ Add Apps</button>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAdminModal()">&times;</span>
+            <h2>Admin Access</h2>
+            <div class="input-group">
+                <input type="password" id="adminPassword" placeholder="Enter Admin Password" />
+            </div>
+            <button class="btn" onclick="verifyAdmin()">Verify</button>
+            <div id="adminError" class="error"></div>
+        </div>
+    </div>
+
+    <!-- Add App Modal -->
+    <div id="addAppModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddAppModal()">&times;</span>
+            <h2>Add New App</h2>
+            
+            <div class="input-group">
+                <input type="text" id="appName" placeholder="App Name" />
+            </div>
+            
+            <div class="input-group">
+                <div class="file-input-wrapper">
+                    <input type="file" id="appIcon" accept="image/*" onchange="previewIcon()" />
+                    <label for="appIcon" class="file-input-label">
+                        📷 Choose App Icon
+                        <div id="iconPreview"></div>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="file-input-wrapper">
+                    <input type="file" id="appFile" accept=".apk" onchange="showFileName()" />
+                    <label for="appFile" class="file-input-label">
+                        📦 Choose APK File
+                        <div id="filePreview"></div>
+                    </label>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="addApp()">Add App</button>
+            <div id="addAppError" class="error"></div>
+            <div id="addAppSuccess" class="success"></div>
+        </div>
+    </div>
+
+    <script>
+        // Persistent storage for apps
+        let apps = [];
+        let currentUser = null;
+
+        // Load apps from storage on page load
+        function loadApps() {
+            const savedApps = localStorage.getItem('appManagerApps');
+            if (savedApps) {
+                try {
+                    apps = JSON.parse(savedApps);
+                } catch (e) {
+                    console.error('Error loading apps:', e);
+                    apps = [];
+                }
+            }
+        }
+
+        // Save apps to storage
+        function saveApps() {
+            try {
+                localStorage.setItem('appManagerApps', JSON.stringify(apps));
+            } catch (e) {
+                console.error('Error saving apps:', e);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadApps();
+        });
+
+        // Authentication
+        function login() {
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            if (password === 'MTMS') {
+                currentUser = 'user';
+                showAppsScreen();
+                errorDiv.textContent = '';
+            } else {
+                errorDiv.textContent = 'Invalid password';
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('appsScreen').classList.add('hidden');
+            document.getElementById('loginPassword').value = '';
+        }
+
+        function showAppsScreen() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appsScreen').classList.remove('hidden');
+            renderApps();
+        }
+
+        // Admin functions
+        function showAdminModal() {
+            document.getElementById('adminModal').style.display = 'block';
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminError').textContent = '';
+        }
+
+        function verifyAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            const errorDiv = document.getElementById('adminError');
+            
+            if (password === 'skid') {
+                closeAdminModal();
+                showAddAppModal();
+            } else {
+                errorDiv.textContent = 'Invalid admin password';
+            }
+        }
+
+        // Add app functions
+        function showAddAppModal() {
+            document.getElementById('addAppModal').style.display = 'block';
+        }
+
+        function closeAddAppModal() {
+            document.getElementById('addAppModal').style.display = 'none';
+            // Clear form
+            document.getElementById('appName').value = '';
+            document.getElementById('appIcon').value = '';
+            document.getElementById('appFile').value = '';
+            document.getElementById('iconPreview').innerHTML = '';
+            document.getElementById('filePreview').innerHTML = '';
+            document.getElementById('addAppError').textContent = '';
+            document.getElementById('addAppSuccess').textContent = '';
+        }
+
+        function previewIcon() {
+            const file = document.getElementById('appIcon').files[0];
+            const preview = document.getElementById('iconPreview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Icon preview">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showFileName() {
+            const file = document.getElementById('appFile').files[0];
+            const preview = document.getElementById('filePreview');
+            
+            if (file) {
+                preview.innerHTML = `<div style="margin-top: 10px; color: #667eea;">✅ ${file.name}</div>`;
+            }
+        }
+
+        function addApp() {
+            const appName = document.getElementById('appName').value;
+            const appIcon = document.getElementById('appIcon').files[0];
+            const appFile = document.getElementById('appFile').files[0];
+            const errorDiv = document.getElementById('addAppError');
+            const successDiv = document.getElementById('addAppSuccess');
+            
+            // Clear previous messages
+            errorDiv.textContent = '';
+            successDiv.textContent = '';
+            
+            // Validation
+            if (!appName.trim()) {
+                errorDiv.textContent = 'Please enter an app name';
+                return;
+            }
+            
+            if (!appFile) {
+                errorDiv.textContent = 'Please select an APK file';
+                return;
+            }
+            
+            // Convert files to base64 for storage
+            const fileReader = new FileReader();
+            const iconReader = new FileReader();
+            
+            fileReader.onload = function(e) {
+                const appFileData = e.target.result;
+                
+                if (appIcon) {
+                    iconReader.onload = function(iconE) {
+                        createAppWithData(appName, iconE.target.result, appFileData, appFile.name);
+                    };
+                    iconReader.readAsDataURL(appIcon);
+                } else {
+                    createAppWithData(appName, null, appFileData, appFile.name);
+                }
+            };
+            
+            fileReader.readAsDataURL(appFile);
+        }
+
+        function createAppWithData(appName, iconData, fileData, fileName) {
+            // Create app object with persistent data
+            const newApp = {
+                id: Date.now(),
+                name: appName.trim(),
+                icon: iconData,
+                fileData: fileData,
+                fileName: fileName
+            };
+            
+            // Add to apps array
+            apps.push(newApp);
+            
+            // Save to persistent storage
+            saveApps();
+            
+            document.getElementById('addAppSuccess').textContent = 'App added successfully!';
+            
+            // Refresh apps display
+            renderApps();
+            
+            // Close modal after 1.5 seconds
+            setTimeout(() => {
+                closeAddAppModal();
+            }, 1500);
+        }
+
+        // Render apps
+        function renderApps() {
+            const appsGrid = document.getElementById('appsGrid');
+            
+            if (apps.length === 0) {
+                appsGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; color: #999; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">📱</div>
+                        <div>No apps available yet</div>
+                        <div style="font-size: 14px; margin-top: 10px;">Use "Add Apps" to add your first app</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            appsGrid.innerHTML = apps.map(app => `
+                <div class="app-card" onclick="downloadApp('${app.fileName}', ${app.id})">
+                    <div class="app-icon">
+                        ${app.icon ? `<img src="${app.icon}" alt="${app.name}">` : '📱'}
+                    </div>
+                    <div class="app-name">${app.name}</div>
+                    <div style="font-size: 12px; color: #999;">${app.fileName}</div>
+                </div>
+            `).join('');
+        }
+
+        // Download app (from persistent storage)
+        function downloadApp(fileName, appId) {
+            const app = apps.find(a => a.id === appId);
+            if (!app || !app.fileData) return;
+            
+            // Convert base64 back to blob for download
+            fetch(app.fileData)
+                .then(res => res.blob())
+                .then(blob => {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Show download notification
+                    showDownloadNotification(app.name);
+                });
+        }
+
+        function showDownloadNotification(appName) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4ecdc4;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = `Downloading ${appName}...`;
+            
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Event listeners
+        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+
+        document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyAdmin();
+            }
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const adminModal = document.getElementById('adminModal');
+            const addAppModal = document.getElementById('addAppModal');
+            
+            if (event.target === adminModal) {
+                closeAdminModal();
+            }
+            if (event.target === addAppModal) {
+                closeAddAppModal();
+            }
+        };
+    </script>
+</body>
+</html>
